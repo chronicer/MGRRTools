@@ -1,0 +1,266 @@
+{
+	"Soldiers":[
+		{	
+			"id": 131392,
+			"eng": "Soldier 1",
+			"rus": "Солдат 1"
+		},
+		{	
+			"id": 131396,
+			"eng": "Soldier 2",
+			"rus": "Солдат 2"
+		},
+		{	
+			"id": 164164,
+			"eng": "Soldier",
+			"rus": "Солдат"
+		},
+		{
+			"id": 180544,
+			"eng": "Soldier (Sam)",
+			"rus": "Солдат (Сэм)"	
+		},
+		{
+			"id": 180546,
+			"eng": "Soldier (Sam)",
+			"rus": "Солдат (Сэм)"	
+		},
+		{	
+			"id": 180548,
+			"eng": "Soldier (Sam)",
+			"rus": "Солдат (Сэм)"
+		},
+		{	
+			"id": 164128,
+			"eng": "Fly soldier",
+			"rus": "Летающий солдат"
+		},
+		{
+			"id": 131424,
+			"eng": "Policeman",
+			"rus": "Полицейский"	
+		},
+		{
+			"id": 131408,
+			"eng": "Powerful soldier",
+			"rus": "Мощный солдат"	
+		},
+		{
+			"id": 131410,
+			"eng": "Powerful soldier 2",
+			"rus": "Мощный солдат 2"	
+		},
+		{
+			"id": 131440,
+			"eng": "Hammer man",
+			"rus": "Молотоносец"	
+		},
+		{
+			"id": 180592,
+			"eng": "Hammer man (Sam)",
+			"rus": "Молотоносец (Сэм)"	
+		}	
+	],
+	"Robots":[
+		{
+			"id": 131328,
+			"eng": "Vodomerka",
+			"rus": "Водомерка"	
+		},
+		{
+			"id": 180480,
+			"eng": "Vodomerka (Sam)",
+			"rus": "Водомерка (Сэм)"	
+		},
+		{
+			"id": 163904,
+			"eng": "Tripod",
+			"rus": "Трипод"	
+		},
+		{
+			"id": 180288,
+			"eng": "Tripod (Sam)",
+			"rus": "Трипод (Сэм)"	
+		},
+		{
+			"id": 163936,
+			"eng": "Robot, after death spawns tripod",
+			"rus": "Робот, после уничтожения выпадает трипод"	
+		},
+		{
+			"id": 164384,
+			"eng": "Dog",
+			"rus": "Собака"	
+		}
+	],
+	"Gorillas":[
+		{
+			"id": 131184,
+			"eng": "Yellow gorilla",
+			"rus": "Желтая горилла"	
+		},
+		{
+			"id": 131185,
+			"eng": "Red gorilla",
+			"rus": "Красная горилла"	
+		},
+		{
+			"id": 163953,
+			"eng": "Gorilla",
+			"rus": "Горилла"	
+		},
+		{
+			"id": 180337,
+			"eng": "Gorilla (Sam)",
+			"rus": "Горилла (Сэм)"	
+		}
+	],
+	"Bosses":[
+		{
+			"id": 131122,
+			"eng": "MG Ray",
+			"rus": "МГ Рэй"	
+		},
+		{
+			"id": 131200,
+			"eng": "Grad",
+			"rus": "Град"	
+		},
+		{
+			"id": 163968,
+			"eng": "Grad",
+			"rus": "Град"	
+		},
+		{
+			"id": 131344,
+			"eng": "Mistral",
+			"rus": "Мистраль"	
+		},
+		{
+			"id": 131488,
+			"eng": "Monsoon",
+			"rus": "Муссон"	
+		},
+		{
+			"id": 131856,
+			"eng": "Sundowner",
+			"rus": "Сандаунер"	
+		},
+		{
+			"id": 131104,
+			"eng": "Sam",
+			"rus": "Сэм"	
+		},	
+		{
+			"id": 132608,
+			"eng": "Excelsus",
+			"rus": "Эксельсус"	
+		},	
+		{
+			"id": 132864,
+			"eng": "Armstrong in clothes",
+			"rus": "Армстронг в одежде"	
+		},
+		{
+			"id": 132874,
+			"eng": "Armstrong without clothes",
+			"rus": "Армстронг без верхней одежды"	
+		},
+		{
+			"id": 182026,
+			"eng": "Sam's Armstrong",
+			"rus": "Армстронг за Сэма"	
+		},
+		{
+			"id": 182016,
+			"eng": "Sam's Armstrong smoking",
+			"rus": "Армстронг за Сэма, стоит и курит"	
+		},
+		{
+			"id": 131376,
+			"eng": "Khamsin",
+			"rus": "Хамсин"	
+		}
+	],
+	"Players":[
+		{
+			"id": 65552,
+			"eng": "Raiden (game crashes)",
+			"rus": "Райден (игра крашится)"	
+		},
+		{
+			"id": 70656,
+			"eng": "Sam (infinite loading)",
+			"rus": "Райден (бесконечная загрузка)"	
+		},
+		{
+			"id": 70912,
+			"eng": "Wolf (infinite loading)",
+			"rus": "Вульф (бесконечная загрузка)"	
+		}
+	],
+	"Sundowner event buildings":[
+		{
+			"id": 873491,
+			"eng": "Building",
+			"rus": "Здание"	
+		},
+		{
+			"id": 852080,
+			"eng": "Flying robot, fly down",
+			"rus": "Летающий робот, летит вниз"	
+		},			
+		{
+			"id": 873490,
+			"eng": "Columns",
+			"rus": "Колонны"	
+		}
+	],
+	"Others":[
+		{
+			"id": 165888,
+			"eng": "Mine",
+			"rus": "Мина"	
+		},	
+		{
+			"id": 131617,
+			"eng": "Wolf (appears in final mission)",
+			"rus": "Вульф (появляется в финальной миссии)"	
+		},
+		{
+			"id": 200785,
+			"eng": "Small item???",
+			"rus": "Какая-то хрень)))"	
+		},
+		{
+			"id": 852371,
+			"eng": "High platform",
+			"rus": "Высокая платформа"	
+		},
+		{
+			"id": 852560,
+			"eng": "Platform with balcony",
+			"rus": "Балкон с платформой"	
+		},
+		{
+			"id": 852567,
+			"eng": "Balcony, platform",
+			"rus": "Балкон, платформа"	
+		},
+		{
+			"id": 917674,
+			"eng": "Steps",
+			"rus": "Ступеньки"	
+		},
+		{
+			"id": 938448,
+			"eng": "Black platform",
+			"rus": "Черная платформа"	
+		},
+		{
+			"id": 917673,
+			"eng": "Platform",
+			"rus": "Платформа"	
+		}			
+	]
+}
