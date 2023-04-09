@@ -1,0 +1,17 @@
+131104 - Сэм/Sam
+131344 - Мистраль/Mistral
+131376 - Хамсин/Khamsin
+131488 - Муссон/Monsoon
+131396 - Солдат/Soldier
+131617 - Вульф (появляется в последней миссии)/Wolf (appears in final mission)
+131856 - Сандаунер/Sundowner
+132608 - Excelsus
+132864 - Армстронг 1/Armstrong 1 phase
+132874 - Армстронг 2/ Armstrong 2 phase 200% hp
+165888 - Мина/Mine
+180288 - Маленький робот/Small robot
+180548 - Солдат/Soldier
+180562 - Не грузит/Not loading
+180592 - Молотоносец/Hammerman
+182026 - Армстронг за Сэма/Sam's Armstrong
+262191 - босс-вертолёт/helicopter

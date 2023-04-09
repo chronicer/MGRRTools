@@ -12,5 +12,3 @@ D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.CoreCompileInputs.
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.CopyComplete
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.exe
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.pdb
-D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\System.Runtime.CompilerServices.Unsafe.dll
-D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\System.Runtime.CompilerServices.Unsafe.xml
