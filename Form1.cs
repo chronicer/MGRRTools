@@ -48,7 +48,7 @@ namespace MGRRDat
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
             treeView1.Nodes.Add("Enemy list");
-
+            enemies = idNodes.SelectNodes("SetInfo");
             for (int j = 0; j < enemies.Count; j++)
             {
                 treeView1.Nodes[0].Nodes.Add(enemies[j].Attributes["Id"].Value.ToString());
@@ -274,6 +274,7 @@ namespace MGRRDat
         {
             int index = 0;
             int selectedNodeIndex = -1;
+            
             foreach (var _item in treeView1.Nodes[0].Nodes)
             {
                 if (_item == treeView1.SelectedNode)
@@ -515,7 +516,7 @@ namespace MGRRDat
 
         private void button12_Click(object sender, EventArgs e)
         {
-            idNodes.AppendChild(idNodes.SelectSingleNode("//SetInfo").Clone());
+            idNodes.AppendChild(idNodes.SelectSingleNode("SetInfo").Clone());
             RefreshTreeView();
         }
     }

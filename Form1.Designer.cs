@@ -227,7 +227,6 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(461, 20);
             this.textBox1.TabIndex = 18;
-            this.textBox1.Text = "D:\\Downloads\\mgrrtools_By_flatz\\p310.dat";
             // 
             // label8
             // 
