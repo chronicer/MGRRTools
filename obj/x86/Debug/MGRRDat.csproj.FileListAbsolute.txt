@@ -1,0 +1,16 @@
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\MGRRDat.exe.config
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\MGRRDat.exe
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\MGRRDat.pdb
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\Newtonsoft.Json.dll
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\Newtonsoft.Json.xml
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.AssemblyReference.cache
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.SuggestedBindingRedirects.cache
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.Form1.resources
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.Properties.Resources.resources
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.GenerateResource.cache
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.CoreCompileInputs.cache
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.csproj.CopyComplete
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.exe
+D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Debug\MGRRDat.pdb
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\System.Runtime.CompilerServices.Unsafe.dll
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Debug\System.Runtime.CompilerServices.Unsafe.xml
