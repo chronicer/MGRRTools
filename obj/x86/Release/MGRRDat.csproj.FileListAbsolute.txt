@@ -1,8 +1,6 @@
 D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\MGRRDat.exe.config
 D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\MGRRDat.exe
 D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\MGRRDat.pdb
-D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\Newtonsoft.Json.dll
-D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\Newtonsoft.Json.xml
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.csproj.AssemblyReference.cache
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.csproj.SuggestedBindingRedirects.cache
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.Form1.resources
@@ -12,3 +10,18 @@ D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.csproj.CoreCompileInput
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.csproj.CopyComplete
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.exe
 D:\MGR\MGRR Adding Enemy\MGRRDat\obj\x86\Release\MGRRDat.pdb
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\mscorlib.dll
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\ru\mscorlib.resources.dll
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\sortkey.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\sorttbls.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\big5.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\bopomofo.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\ksc.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\prc.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\prcp.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\xjis.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\normidna.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\normnfc.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\normnfd.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\normnfkc.nlp
+D:\MGR\MGRR Adding Enemy\MGRRDat\bin\x86\Release\normnfkd.nlp

@@ -1,15 +1,10 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -24,11 +19,20 @@ namespace MGRRDat
         string NewEmSetRoot = "//NewEmSetRoot";
         string pathToEnemyGroup = "CorpsRoot/MemberList/GroupList[contains(@name, 'GROUP_00')]/diffInfo/EnemyList";
 
-        string[] IDs = new string[32];
-        string[] Transes = new string[32];
-        string[] SetTypes = new string[32];
-        string[] Types = new string[32];
+        string[] IDs = new string[100];
+        string[] Transes = new string[100];
+        string[] SetTypes = new string[100];
+        string[] Types = new string[100];
+
+
+
         string pathToBxmXml = "";
+        string treeViewPath = "";
+
+        int firstIndex = -1;
+        int secondIndex = -1;
+        int thirdIndex = -1;
+
 
         XmlDocument XmlDoc = new XmlDocument();
         XmlNode primary;
@@ -36,7 +40,7 @@ namespace MGRRDat
         XmlNodeList enemies;
 
         string langugage = "eng";
-        JObject JSONSettings = JObject.Parse(File.ReadAllText("enemyList.json"));
+       // JObject JSONSettings = JObject.Parse(File.ReadAllText("enemyList.json"));
         public Form1()
         {
             InitializeComponent();
@@ -59,18 +63,18 @@ namespace MGRRDat
         private void Form1_Load(object sender, EventArgs e)
         {
 
+            
+          //  for (int i = 0; i < JSONSettings["Soldiers"].Count(); i++)
+               // listBox2.Items.Add(JSONSettings["Soldiers"][i]["id"].ToString() + " " + JSONSettings["Soldiers"][i][langugage].ToString());
 
-            for (int i = 0; i < JSONSettings["Soldiers"].Count(); i++)
-                listBox2.Items.Add(JSONSettings["Soldiers"][i]["id"].ToString() + " " + JSONSettings["Soldiers"][i][langugage].ToString());
 
 
-
-            foreach (JProperty property in JSONSettings.Properties())
-            {
-                listBox1.Items.Add(property.Name);
-            }
-            listBox2.SelectedIndex = 0;
-            listBox1.SelectedIndex = 0;
+           // foreach (JProperty property in JSONSettings.Properties())
+           // {
+             //   listBox1.Items.Add(property.Name);
+           // }
+          //  listBox2.SelectedIndex = 0;
+           // listBox1.SelectedIndex = 0;
         }
 
 
@@ -124,9 +128,9 @@ namespace MGRRDat
                         {
                             StartInfo =
                         {
-                            FileName = "py",
-                            WorkingDirectory = "BXM-XML-Converter/",
-                            Arguments = @"bxmToXml.py "+@""""+filePath+@""""
+                            FileName = "bxmToXml.exe",
+                            WorkingDirectory = "BXM-XML/",
+                            Arguments = @" "+@""""+filePath+@""""
                         }
                         }.Start();
                     }
@@ -138,9 +142,9 @@ namespace MGRRDat
                 {
                     StartInfo =
                         {
-                            FileName = "py",
-                            WorkingDirectory = "BXM-XML-Converter/",
-                            Arguments = @"bxmToXml.py "+@""""+pathToFile+@""""
+                            FileName = "bxmToXml.exe",
+                            WorkingDirectory = "BXM-XML/",
+                            Arguments = @" "+@""""+pathToFile+@""""
                         }
                 }.Start();
             }
@@ -167,9 +171,9 @@ namespace MGRRDat
                         {
                             StartInfo =
                         {
-                            FileName = "py",
-                            WorkingDirectory = "BXM-XML-Converter/",
-                            Arguments = @"XmlToBxm.py "+@""""+filePath+@""""
+                            FileName = "xmlToBxm.exe",
+                            WorkingDirectory = "BXM-XML/",
+                            Arguments = @" "+@""""+filePath+@""""
                         }
                         }.Start();
                     }
@@ -181,9 +185,9 @@ namespace MGRRDat
                 {
                     StartInfo =
                         {
-                            FileName = "py",
-                            WorkingDirectory = "BXM-XML-Converter/",
-                            Arguments = @"XmlToBxm.py "+@""""+pathToFile+@""""
+                            FileName = "xmlToBxm.exe",
+                            WorkingDirectory = "BXM-XML/",
+                            Arguments = @" "+@""""+pathToFile+@""""
                         }
                 }.Start();
             }
@@ -196,9 +200,9 @@ namespace MGRRDat
             {
                 StartInfo =
                  {
-                     FileName = "py",
+                     FileName = "dat.exe",
                      WorkingDirectory = "DATRepacker/",
-                     Arguments = @"dat.py "+@""""+folderPath+@""""
+                     Arguments = @" "+@""""+folderPath+@""""
                  }
             }.Start();
         }
@@ -269,6 +273,14 @@ namespace MGRRDat
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
         }
+        private int GetIndex(TreeNode node)
+        {
+            // Always make a way to exit the recursion.
+            if (node.Parent == null)
+                return node.Index;
+
+            return node.Index + GetIndex(node.Parent);
+        }
 
         public int TreeViewSelectedIndex()
         {
@@ -325,9 +337,46 @@ namespace MGRRDat
             Thread.Sleep(secToSleep);
             XmlDoc.LoadXml(File.ReadAllText(pathToBxmXml.Replace(".bxm",".xml")));
 
+
             primary = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[0];
             idNodes = primary.SelectSingleNode(pathToEnemyGroup);
-           
+
+
+
+            treeView2.BeginUpdate();
+            treeView2.Nodes.Clear();
+           // enemies = idNodes.SelectNodes("SetInfo");
+
+
+            for (int j = 0; j < XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes.Count; j++)
+            {
+               // treeView2.Nodes.Add("COPRS_0" + j.ToString());
+                if (j<10) treeView2.Nodes.Add("COPRS_0" + j.ToString());
+                if (j>=10) treeView2.Nodes.Add("COPRS_" + j.ToString());
+                
+                for (int k=0;k<XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes.Count;k++)
+                {
+                    treeView2.Nodes[j].Nodes.Add(XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].Attributes["name"].Value.ToString());
+                    // if (k == 0 && j == 0) MessageBox.Show(XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].InnerXml);
+
+
+
+
+
+                    // if (k == 0 && j == 0) MessageBox.Show(XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].SelectSingleNode("diffInfo/EnemyList").ChildNodes[0].Attributes["Id"].Value.ToString());
+
+                    if (XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].SelectSingleNode("diffInfo") != null)
+                    {
+                        for (int l = 0; l < XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].SelectSingleNode("diffInfo/EnemyList").ChildNodes.Count; l++)
+                        {
+
+                            treeView2.Nodes[j].Nodes[k].Nodes.Add(XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[j].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[k].SelectSingleNode("diffInfo/EnemyList").ChildNodes[l].Attributes["Id"].Value.ToString());
+                        }
+                    }
+                }
+            }
+            treeView2.EndUpdate();
+
 
             enemies = idNodes.SelectNodes("SetInfo");
             RefreshTreeView();
@@ -341,24 +390,6 @@ namespace MGRRDat
 
             string fileName = Path.GetFileNameWithoutExtension(pathToDat);
             string fileDirectory = Path.GetDirectoryName(pathToDat);
-
-            for (int j = 0; j<enemies.Count; j++)
-            {
-                if (IDs[j]!="" && IDs[j]!=null) 
-                    enemies[j].Attributes["Id"].Value = IDs[j];
-
-                if (Transes[j]!="" && Transes[j]!=null) 
-                    enemies[j].Attributes["Trans"].Value = Transes[j];
-                   
-                if (SetTypes[j]!= "" && SetTypes[j]!=null) 
-                    enemies[j].Attributes["SetType"].Value = SetTypes[j];
-                    
-                if (Types[j]!="" && Types[j]!=null) 
-                    enemies[j].Attributes["Type"].Value = Types[j];
-                
-                //SetNo
-                enemies[j].FirstChild.InnerXml = j.ToString();
-            }
 
 
             XmlDoc.Save(pathToBxmXml.Replace(".bxm", ".xml"));
@@ -394,11 +425,11 @@ namespace MGRRDat
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string EnemyType = listBox1.GetItemText(listBox1.SelectedItem);
-            listBox2.Items.Clear();
-            for (int i = 0; i < JSONSettings[EnemyType].Count(); i++)
-                listBox2.Items.Add(JSONSettings[EnemyType][i]["id"].ToString() + " " + JSONSettings[EnemyType][i][langugage].ToString());
-            listBox2.SelectedIndex = 0;
+           // string EnemyType = listBox1.GetItemText(listBox1.SelectedItem);
+           // listBox2.Items.Clear();
+           // for (int i = 0; i < JSONSettings[EnemyType].Count(); i++)
+             //   listBox2.Items.Add(JSONSettings[EnemyType][i]["id"].ToString() + " " + JSONSettings[EnemyType][i][langugage].ToString());
+            //listBox2.SelectedIndex = 0;
 
 
 
@@ -508,16 +539,181 @@ namespace MGRRDat
 
         private void button11_Click(object sender, EventArgs e)
         {
-            IDs[TreeViewSelectedIndex()] = IDTextBox.Text;
-            Transes[TreeViewSelectedIndex()] = TransTextBox.Text;
-            SetTypes[TreeViewSelectedIndex()] = SetTypeTextBox.Text;
-            Types[TreeViewSelectedIndex()] = TypeTextBox.Text;
+            if (firstIndex != -1)
+            {
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Id"].Value = IDTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Room"].Value = RoomTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRot"].Value = BaseRotTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRotL"].Value = BaseRotLTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Trans"].Value = TransTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["TransL"].Value = TransLTextBox.Text;
+
+
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Rotation"].Value = RotationTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetType"].Value = SetTypeTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Type"].Value = TypeTextBox.Text;
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetRtn"].Value = SetRtnTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetFlag"].Value = SetFlagTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PathNo"].Value = PathNoTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["WaypointNo"].Value = WaypointNoTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetWait"].Value = SetWaitTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Hp"].Value = HpTextBox.Text;
+
+
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Param"].Value = ParamTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BezierNo"].Value = BezierNoTextBox.Text;
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ParentId"].Value = ParentIdTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PartsNo"].Value = PartsNoTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["HashNo"].Value = HashNoTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemId"].Value = ItemIdTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["GroupPos"].Value = GroupPosTextBox.Text;
+
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialRtn"].Value = InitialRtnTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPos"].Value = InitialPosTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPosDirY"].Value = InitialPosDirYTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialTime"].Value = InitialTimeTextBox.Text;
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemAlias"].Value = ItemAliasTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Free0"].Value = Free0TextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemNormal"].Value = DropItemNormalTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemStealth"].Value = DropItemStealthTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["VisceraTableNo"].Value = VisceraTableNoTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngY"].Value = ReflexViewAngYTextBox.Text;
+
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngX"].Value = ReflexViewAngXTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewDist"].Value = ReflexViewDistTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngY"].Value = ScoutViewAngYTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngX"].Value = ScoutViewAngXTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewDist"].Value = ScoutViewDistTextBox.Text;
+
+                treeView2.SelectedNode.Text = IDTextBox.Text;
+            }
+            else MessageBox.Show("Sam says: enemy not selected!");
+
         }
 
         private void button12_Click(object sender, EventArgs e)
         {
-            idNodes.AppendChild(idNodes.SelectSingleNode("SetInfo").Clone());
-            RefreshTreeView();
+            if (firstIndex!=-1)
+            {
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").AppendChild(
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Clone());
+            
+                treeView2.Nodes[firstIndex].Nodes[secondIndex].Nodes.Clear();
+            
+                //Update treeView after add enemy
+                for (int i = 0; i< XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes.Count;i++)
+                {
+                    treeView2.Nodes[firstIndex].Nodes[secondIndex].Nodes.Add(XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[i].Attributes["Id"].Value);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Sam says: enemy not selected!");
+            }
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            //str = "слово1^слово2...";
+            //String word = str.Substring(0, str.IndexOf('^'));
+        }
+
+        private void treeView2_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+
+            if (treeView2.SelectedNode.Level == 2)
+            {
+                firstIndex = treeView2.SelectedNode.Parent.Parent.Index;
+                secondIndex = treeView2.SelectedNode.Parent.Index;
+                thirdIndex = treeView2.SelectedNode.Index;
+
+                IDTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Id"].Value;
+                RoomTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Room"].Value;
+                BaseRotTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRot"].Value;
+                BaseRotLTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRotL"].Value;
+                TransTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Trans"].Value;
+                TransLTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["TransL"].Value;
+
+
+
+                RotationTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Rotation"].Value;
+                SetTypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetType"].Value;
+                TypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Type"].Value;
+
+                SetRtnTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetRtn"].Value;
+                SetFlagTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetFlag"].Value;
+                PathNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PathNo"].Value;
+                WaypointNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["WaypointNo"].Value;
+                SetWaitTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetWait"].Value;
+                HpTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Hp"].Value;
+
+
+
+                ParamTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Param"].Value;
+                BezierNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BezierNo"].Value;
+
+                ParentIdTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ParentId"].Value;
+                PartsNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PartsNo"].Value;
+                HashNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["HashNo"].Value;
+                ItemIdTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemId"].Value;
+                GroupPosTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["GroupPos"].Value;
+
+
+                InitialRtnTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialRtn"].Value;
+                InitialPosTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPos"].Value;
+                InitialPosDirYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPosDirY"].Value;
+                InitialTimeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialTime"].Value;
+
+                ItemAliasTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemAlias"].Value;
+                Free0TextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Free0"].Value;
+                DropItemNormalTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemNormal"].Value;
+                DropItemStealthTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemStealth"].Value;
+                VisceraTableNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["VisceraTableNo"].Value;
+                ReflexViewAngYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngY"].Value;
+
+                ReflexViewAngXTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngX"].Value;
+                ReflexViewDistTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewDist"].Value;
+                ScoutViewAngYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngY"].Value;
+                ScoutViewAngXTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngX"].Value;
+                ScoutViewDistTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewDist"].Value;
+
+
+
+
+
+                //  IDTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Id"].Value.ToString();
+                //  TransTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Trans"].Value.ToString();
+                // SetTypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetType"].Value.ToString();
+                /// TypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Type"].Value.ToString();
+
+            }
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label22_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
