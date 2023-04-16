@@ -40,41 +40,14 @@ namespace MGRRDat
         XmlNodeList enemies;
 
         string langugage = "eng";
-       // JObject JSONSettings = JObject.Parse(File.ReadAllText("enemyList.json"));
         public Form1()
         {
             InitializeComponent();
 
         }
 
-        public void RefreshTreeView()
-        {
-            treeView1.BeginUpdate();
-            treeView1.Nodes.Clear();
-            treeView1.Nodes.Add("Enemy list");
-            enemies = idNodes.SelectNodes("SetInfo");
-            for (int j = 0; j < enemies.Count; j++)
-            {
-                treeView1.Nodes[0].Nodes.Add(enemies[j].Attributes["Id"].Value.ToString());
-            }
-            treeView1.EndUpdate();
-        }
-
         private void Form1_Load(object sender, EventArgs e)
         {
-
-            
-          //  for (int i = 0; i < JSONSettings["Soldiers"].Count(); i++)
-               // listBox2.Items.Add(JSONSettings["Soldiers"][i]["id"].ToString() + " " + JSONSettings["Soldiers"][i][langugage].ToString());
-
-
-
-           // foreach (JProperty property in JSONSettings.Properties())
-           // {
-             //   listBox1.Items.Add(property.Name);
-           // }
-          //  listBox2.SelectedIndex = 0;
-           // listBox1.SelectedIndex = 0;
         }
 
 
@@ -88,12 +61,12 @@ namespace MGRRDat
 
         private void button2_Click(object sender, EventArgs e)
         {
-            bxmToXml("");
+            BxmXml("","bxmToXml");
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            xmlToBxm("");
+            BxmXml("", "xmlToBxm");
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -106,7 +79,7 @@ namespace MGRRDat
             repackDat("");
         }
 
-        public void bxmToXml(string pathToFile)
+        public void BxmXml(string pathToFile, string type)
         {
             var fileContent = string.Empty;
             var filePath = string.Empty;
@@ -128,7 +101,7 @@ namespace MGRRDat
                         {
                             StartInfo =
                         {
-                            FileName = "bxmToXml.exe",
+                            FileName = type+".exe",
                             WorkingDirectory = "BXM-XML/",
                             Arguments = @" "+@""""+filePath+@""""
                         }
@@ -142,7 +115,7 @@ namespace MGRRDat
                 {
                     StartInfo =
                         {
-                            FileName = "bxmToXml.exe",
+                            FileName = type+".exe",
                             WorkingDirectory = "BXM-XML/",
                             Arguments = @" "+@""""+pathToFile+@""""
                         }
@@ -150,30 +123,89 @@ namespace MGRRDat
             }
         }
 
-        public void xmlToBxm(string pathToFile)
+        public void repackMcd(string pathToOldMcd, string pathToNewMcd, string pathToTextFile)
         {
-            var fileContent = string.Empty;
-            var filePath = string.Empty;
+
+            if (pathToOldMcd == "")
+            {
+                using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                {
+                    openFileDialog.Filter = "mcd files (*.mcd)|*.mcd|All files (*.*)|*.*";
+                    openFileDialog.FilterIndex = 1;
+                    openFileDialog.RestoreDirectory = true;
+
+                    
+                    if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        //Get the path of specified file
+                        string oldMcd = openFileDialog.FileName;
+
+                        /******************** for unpacked file ***************************/
+                        using (OpenFileDialog openFileDialog2 = new OpenFileDialog())
+                        {
+
+                            openFileDialog2.Filter = "All files (*.*)|*.*";
+                            openFileDialog2.FilterIndex = 1;
+                            openFileDialog2.RestoreDirectory = true;
+
+                            if (openFileDialog2.ShowDialog() == DialogResult.OK)
+                            {
+                                string textFile = openFileDialog2.FileName;
+                                MessageBox.Show(@"repack " + @"""" + oldMcd + @"""" + @" "+@""""+Path.Combine(Path.GetDirectoryName(oldMcd), Path.GetFileNameWithoutExtension(oldMcd)) + @"_new.mcd"+ @"""");
+                                var p = new Process
+                                {
+                                    StartInfo =
+                                    {
+                                     FileName = "mcdtool.exe",
+                                     WorkingDirectory = "DATTools/",
+                                     Arguments = @"repack " + @"""" + oldMcd + @"""" + @" "+@""""+Path.Combine(Path.GetDirectoryName(oldMcd), Path.GetFileNameWithoutExtension(oldMcd)) + @"_new.mcd"+ @""""+@" "+textFile
+                                    }
+                                }.Start();
+                            }
+                        }
+
+                    }
+                }
+            }
+            if (pathToOldMcd != "")
+            {
+                MessageBox.Show(@"repack " + @"""" + pathToOldMcd + @"""" + @" " +@""""+ pathToNewMcd + @"""" + @" " + pathToTextFile);
+                var p = new Process
+                {
+                    StartInfo =
+                        {
+                            FileName = "mcdtool.exe",
+                            WorkingDirectory = "DATTools/",
+                            Arguments = @"repack "+@""""+pathToOldMcd+@""""+@" "+@""""+pathToNewMcd+@""""+@" "+pathToTextFile
+                        }
+                }.Start();
+            }
+        }
+
+
+
+        public void unpackMcd(string pathToFile, string pathToNewFile)
+        {
 
             if (pathToFile == "")
             {
                 using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    openFileDialog.Filter = "xml files (*.xml)|*.xml|All files (*.*)|*.*";
+                    openFileDialog.Filter = "mcd files (*.mcd)|*.mcd|All files (*.*)|*.*";
                     openFileDialog.FilterIndex = 1;
                     openFileDialog.RestoreDirectory = true;
 
                     if (openFileDialog.ShowDialog() == DialogResult.OK)
                     {
                         //Get the path of specified file
-                        filePath = openFileDialog.FileName;
+                        string filePath = openFileDialog.FileName;
                         var p = new Process
                         {
                             StartInfo =
                         {
-                            FileName = "xmlToBxm.exe",
-                            WorkingDirectory = "BXM-XML/",
-                            Arguments = @" "+@""""+filePath+@""""
+                            FileName = "mcdtool.exe",
+                            WorkingDirectory = "DATTools/",
+                            Arguments = @"unpack "+@""""+filePath+@""""+@" "+Path.Combine(Path.GetDirectoryName(filePath),Path.GetFileNameWithoutExtension(filePath))+@".txt"
                         }
                         }.Start();
                     }
@@ -185,9 +217,9 @@ namespace MGRRDat
                 {
                     StartInfo =
                         {
-                            FileName = "xmlToBxm.exe",
-                            WorkingDirectory = "BXM-XML/",
-                            Arguments = @" "+@""""+pathToFile+@""""
+                            FileName = "mcdtool.exe",
+                            WorkingDirectory = "DATTools/",
+                            Arguments = @"unpack "+@""""+pathToFile+@""""+@" "+pathToNewFile
                         }
                 }.Start();
             }
@@ -282,23 +314,6 @@ namespace MGRRDat
             return node.Index + GetIndex(node.Parent);
         }
 
-        public int TreeViewSelectedIndex()
-        {
-            int index = 0;
-            int selectedNodeIndex = -1;
-            
-            foreach (var _item in treeView1.Nodes[0].Nodes)
-            {
-                if (_item == treeView1.SelectedNode)
-                {
-                    selectedNodeIndex = index;
-                    break;
-                }
-                index++;
-            }
-            return selectedNodeIndex;
-        }
-
         public void ReadDataFromDat(string pathToDat)
         {
             int secToSleep = 500;
@@ -332,7 +347,7 @@ namespace MGRRDat
                 
             }
 
-            bxmToXml(pathToBxmXml);
+            BxmXml(pathToBxmXml, "bxmToXml");
 
             Thread.Sleep(secToSleep);
             XmlDoc.LoadXml(File.ReadAllText(pathToBxmXml.Replace(".bxm",".xml")));
@@ -376,10 +391,6 @@ namespace MGRRDat
                 }
             }
             treeView2.EndUpdate();
-
-
-            enemies = idNodes.SelectNodes("SetInfo");
-            RefreshTreeView();
         }
 
         public void enemyReplace (string pathToDat)
@@ -397,7 +408,7 @@ namespace MGRRDat
 
 
             Thread.Sleep(secToSleep);
-            xmlToBxm(pathToBxmXml.Replace(".bxm", ".xml"));
+            BxmXml(pathToBxmXml.Replace(".bxm", ".xml"), "xmlToBxm");
 
             Thread.Sleep(secToSleep);
             File.Delete(pathToBxmXml.Replace(".bxm", ".xml"));
@@ -425,10 +436,12 @@ namespace MGRRDat
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-           // string EnemyType = listBox1.GetItemText(listBox1.SelectedItem);
-           // listBox2.Items.Clear();
-           // for (int i = 0; i < JSONSettings[EnemyType].Count(); i++)
-             //   listBox2.Items.Add(JSONSettings[EnemyType][i]["id"].ToString() + " " + JSONSettings[EnemyType][i][langugage].ToString());
+            IDTextBox.Text = listBox1.GetItemText(listBox1.SelectedItem).Substring(0,listBox1.GetItemText(listBox1.SelectedItem).IndexOf(' '));
+
+            // string EnemyType = listBox1.GetItemText(listBox1.SelectedItem);
+            // listBox2.Items.Clear();
+            // for (int i = 0; i < JSONSettings[EnemyType].Count(); i++)
+            //   listBox2.Items.Add(JSONSettings[EnemyType][i]["id"].ToString() + " " + JSONSettings[EnemyType][i][langugage].ToString());
             //listBox2.SelectedIndex = 0;
 
 
@@ -437,12 +450,12 @@ namespace MGRRDat
 
         private void button6_Click(object sender, EventArgs e)
         {
-            bxmToXml(textBox4.Text);
+            BxmXml(textBox4.Text, "bxmToXml");
         }
 
         private void button7_Click(object sender, EventArgs e)
         {
-            xmlToBxm(textBox5.Text);
+            BxmXml(textBox5.Text, "xmlToBxm");
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -496,39 +509,6 @@ namespace MGRRDat
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            
-            if (TreeViewSelectedIndex()!=-1)
-            {
-                if (IDs[TreeViewSelectedIndex()]!="" && IDs[TreeViewSelectedIndex()]!=null)
-                {
-                    IDTextBox.Text = IDs[TreeViewSelectedIndex()];
-                    treeView1.Nodes[0].Nodes[TreeViewSelectedIndex()].Text = IDs[TreeViewSelectedIndex()];
-                }
-                else IDTextBox.Text = enemies[TreeViewSelectedIndex()].Attributes["Id"].Value;
-
-
-                
-                
-                if (Transes[TreeViewSelectedIndex()] != "" && Transes[TreeViewSelectedIndex()] != null)
-                {
-                    TransTextBox.Text = Transes[TreeViewSelectedIndex()];
-                }
-                else TransTextBox.Text = enemies[TreeViewSelectedIndex()].Attributes["Trans"].Value;
-
-                
-                
-                if (SetTypes[TreeViewSelectedIndex()] != "" && Transes[TreeViewSelectedIndex()] != null)
-                {
-                    SetTypeTextBox.Text = SetTypes[TreeViewSelectedIndex()];
-                }
-                else SetTypeTextBox.Text = enemies[TreeViewSelectedIndex()].Attributes["SetType"].Value;
-
-                if (Types[TreeViewSelectedIndex()] != "" && Transes[TreeViewSelectedIndex()] != null)
-                {
-                    TypeTextBox.Text = Types[TreeViewSelectedIndex()];
-                }
-                else TypeTextBox.Text = enemies[TreeViewSelectedIndex()].Attributes["Type"].Value;
-            }
             
         }
 
@@ -599,11 +579,17 @@ namespace MGRRDat
 
         private void button12_Click(object sender, EventArgs e)
         {
+           
             if (firstIndex!=-1)
             {
+
+                
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").AppendChild(
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Clone());
-            
+                int count = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes.Count;
+
+               // MessageBox.Show(count.ToString() + " " + XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[count - 1].FirstChild.InnerXml);
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[count - 1].FirstChild.InnerXml = (count - 1).ToString();
                 treeView2.Nodes[firstIndex].Nodes[secondIndex].Nodes.Clear();
             
                 //Update treeView after add enemy
@@ -620,8 +606,6 @@ namespace MGRRDat
 
         private void button13_Click(object sender, EventArgs e)
         {
-            //str = "слово1^слово2...";
-            //String word = str.Substring(0, str.IndexOf('^'));
         }
 
         private void treeView2_AfterSelect(object sender, TreeViewEventArgs e)
@@ -714,6 +698,31 @@ namespace MGRRDat
         private void label10_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void label39_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            unpackMcd(textBox3.Text,textBox7.Text);
+        }
+
+        private void button13_Click_1(object sender, EventArgs e)
+        {
+            unpackMcd("", "");
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            repackMcd("", "", "");
+        }
+
+        private void button16_Click(object sender, EventArgs e)
+        {
+            repackMcd(textBox8.Text,textBox9.Text,textBox10.Text);
         }
     }
 }
