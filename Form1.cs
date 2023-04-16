@@ -87,7 +87,9 @@ namespace MGRRDat
             if (pathToFile == "")
                 using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    openFileDialog.Filter = "bxm files (*.bxm)|*.bxm|All files (*.*)|*.*";
+                    if (type=="bxmToXml") openFileDialog.Filter = "bxm files (*.bxm)|*.bxm|All files (*.*)|*.*";
+                    if (type=="xmlToBxm") openFileDialog.Filter = "xml files (*.xml)|*.xml|All files (*.*)|*.*";
+                   
                     openFileDialog.FilterIndex = 1;
                     openFileDialog.RestoreDirectory = false;
 
