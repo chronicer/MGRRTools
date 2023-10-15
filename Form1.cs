@@ -4,17 +4,43 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Remoting.Messaging;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml;
+using static MGRRDat.Form1;
+using static System.Windows.Forms.AxHost;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+using static MGRRDat.EffectStruct;
 
 namespace MGRRDat
 {
 
     public partial class Form1 : Form
     {
+  
 
-   
+
+
+        int RedPos = 0;
+        int GreenPos = 0;
+        int BluePos = 0;
+
+
+        Move_s[] move;
+        Emif_s[] emif;
+        EffectHeader header;
+        TypeGroups[] typeGroup;
+
+        uint[] offsets;
+
 
         string NewEmSetRoot = "//NewEmSetRoot";
         string pathToEnemyGroup = "CorpsRoot/MemberList/GroupList[contains(@name, 'GROUP_00')]/diffInfo/EnemyList";
@@ -24,7 +50,8 @@ namespace MGRRDat
         string[] SetTypes = new string[100];
         string[] Types = new string[100];
 
-
+        bool multipleDatUnpack = false;
+        bool multipleDatRepack = false;
 
         string pathToBxmXml = "";
         string treeViewPath = "";
@@ -39,6 +66,8 @@ namespace MGRRDat
         XmlNode idNodes;
         XmlNodeList enemies;
 
+        System.Windows.Forms.TextBox[] textBoxes;
+
         string langugage = "eng";
         public Form1()
         {
@@ -48,6 +77,15 @@ namespace MGRRDat
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            textBoxes = new System.Windows.Forms.TextBox[] {
+            IDTextBox, RoomTextBox, BaseRotTextBox, BaseRotLTextBox, TransTextBox, TransLTextBox,
+            RotationTextBox, SetTypeTextBox, TypeTextBox, SetRtnTextBox, SetFlagTextBox, PathNoTextBox,
+            WaypointNoTextBox, SetWaitTextBox, HpTextBox, ParamTextBox, BezierNoTextBox, ParentIdTextBox,
+            PartsNoTextBox, HashNoTextBox, ItemIdTextBox, GroupPosTextBox, InitialRtnTextBox, InitialPosTextBox,
+            InitialPosDirYTextBox, InitialTimeTextBox, ItemAliasTextBox, Free0TextBox, DropItemNormalTextBox,
+            DropItemStealthTextBox, VisceraTableNoTextBox, ReflexViewAngYTextBox, ReflexViewAngXTextBox,
+            ReflexViewDistTextBox, ScoutViewAngYTextBox, ScoutViewAngXTextBox, ScoutViewDistTextBox
+            };
         }
 
 
@@ -71,12 +109,12 @@ namespace MGRRDat
 
         private void button4_Click(object sender, EventArgs e)
         {
-            unpackDat("");
+            unpackDat("", multipleDatUnpack);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            repackDat("");
+            repackDat(textBox2.Text,multipleDatRepack);
         }
 
         public void BxmXml(string pathToFile, string type)
@@ -227,46 +265,158 @@ namespace MGRRDat
             }
         }
 
-        public void repackDat(string folderPath)
+        public void repackDat(string folderPath, bool multiple)
         {
-            if (folderPath == "") folderPath = textBox2.Text;
-            var p = new Process
+            if (folderPath != "")
             {
-                StartInfo =
-                 {
-                     FileName = "dat.exe",
-                     WorkingDirectory = "DATRepacker/",
-                     Arguments = @" "+@""""+folderPath+@""""
-                 }
-            }.Start();
+                if (multiple)
+                {
+
+                    // Получаем список папок
+                    DirectoryInfo directory = new DirectoryInfo(folderPath);
+                    DirectoryInfo[] subDirectories = directory.GetDirectories();
+
+                    foreach (DirectoryInfo subDirectory in subDirectories)
+                    {
+                        var p = new Process
+                        {
+                            StartInfo =
+                        {
+                            FileName = "dat.exe",
+                            WorkingDirectory = "DATRepacker/",
+                            Arguments = @" "+@""""+folderPath+@"\"+subDirectory.ToString()+@""""
+                        }
+                        }.Start();
+                    }
+
+                }
+
+                if (!multiple)
+                {
+                    var p = new Process
+                    {
+                        StartInfo =
+                        {
+                            FileName = "dat.exe",
+                            WorkingDirectory = "DATRepacker/",
+                            Arguments = @" "+@""""+folderPath+@""""
+                        }
+                    }.Start();
+                }
+            }
         }
 
-        public void unpackDat(string pathToFile)
+        public void unpackDat(string pathToFile, bool multiple)
         {
             var filePath = string.Empty;
 
+
+            if (multiple)
+            {
+                string folderPath = Path.GetDirectoryName(pathToFile+@"\"); // pathToFolder
+                string[] datFiles = Directory.GetFiles(folderPath); // array of .dat files
+
+                foreach (string file in datFiles)
+                {
+                    if (Path.GetExtension(folderPath + file) == ".dat" || Path.GetExtension(folderPath + file) == ".dtt")
+                    {
+
+                        var process = new Process();
+                        process.StartInfo.FileName = @"dattool.exe";
+                        process.StartInfo.WorkingDirectory = @"DATTools\";
+                        process.StartInfo.Arguments = @"unpack " + @"""" + file + @"""" + " " + @"""" + folderPath + @"\" + Path.GetFileNameWithoutExtension(file) + @"""";
+                        process.Start();
+
+                     /*   var p = new Process
+                        {
+                            StartInfo =
+                            {
+                                FileName = "dattool.exe",
+                                WorkingDirectory = "DATTools/",
+                                Arguments = @"unpack "+@""""+file+@""""+" "+@""""+folderPath+@"\"+Path.GetFileNameWithoutExtension(file)+@""""
+                            }
+                        }.Start();*/
+                    }
+                }
+
+            }
+
+
+
+            if (!multiple)
+            {
+                if (pathToFile == "")
+                    using (OpenFileDialog openFileDialog = new OpenFileDialog())
+                    {
+                        openFileDialog.Filter = "dat files (*.dat)|*.dat|All files (*.*)|*.*";
+                        openFileDialog.FilterIndex = 1;
+                        openFileDialog.RestoreDirectory = false;
+
+                        if (openFileDialog.ShowDialog() == DialogResult.OK && pathToFile == "")
+                        {
+                            //Get the path of specified file
+                            filePath = openFileDialog.FileName;
+                            string path = Path.GetDirectoryName(Application.ExecutablePath);
+
+
+                            var process = new Process();
+                            process.StartInfo.FileName = @"dattool.exe";
+                            process.StartInfo.WorkingDirectory = @"DATTools\";
+                            process.StartInfo.Arguments = @"unpack " + @"""" + filePath + @"""" + " " + @"""" + Path.GetDirectoryName(filePath) + @"\" + Path.GetFileNameWithoutExtension(filePath) + @"""";
+                            process.Start();
+
+                        /*    var p = new Process
+                            {
+                                StartInfo =
+                          {
+                              FileName = "dattool.exe",
+                              WorkingDirectory = "DATTools/",
+                              Arguments = @"unpack "+@""""+filePath+@""""+" "+@""""+Path.GetDirectoryName(filePath)+@"\"+Path.GetFileNameWithoutExtension(filePath)+@""""
+                          }
+                            }.Start();*/
+                        }
+                    }
+
+                if (pathToFile != "")
+                {
+                    string path = Path.GetDirectoryName(Application.ExecutablePath);
+
+                    var p = new Process
+                    {
+                        StartInfo =
+                    {
+                        FileName = "dattool.exe",
+                        WorkingDirectory = "DATTools/",
+                        Arguments = @"unpack "+@""""+pathToFile+@""""+" "+@""""+Path.GetDirectoryName(pathToFile)+@"\"+Path.GetFileNameWithoutExtension(pathToFile)+@""""
+                    }
+                    }.Start();
+                }
+            }
+        }
+
+
+        public void BnkTool(string pathToFile, string type)
+        {
+            string cmd = "";
             if (pathToFile == "")
                 using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    openFileDialog.Filter = "dat files (*.dat)|*.dat|All files (*.*)|*.*";
+                    openFileDialog.Filter = "bnk files (*.bnk)|*.bnk|All files (*.*)|*.*";
                     openFileDialog.FilterIndex = 1;
                     openFileDialog.RestoreDirectory = false;
 
                     if (openFileDialog.ShowDialog() == DialogResult.OK && pathToFile == "")
                     {
                         //Get the path of specified file
-                        filePath = openFileDialog.FileName;
-                        //string strCmdText;
-                        //strCmdText = path+@"\DATTools\dattool.exe unpack "+filePath+" "+Path.GetDirectoryName(filePath) + @"\" + Path.GetFileNameWithoutExtension(filePath);
-                        string path = Path.GetDirectoryName(Application.ExecutablePath);
+                        pathToFile = openFileDialog.FileName;
 
                         var p = new Process
                         {
                             StartInfo =
                           {
-                              FileName = "dattool.exe",
-                              WorkingDirectory = "DATTools/",
-                              Arguments = @"unpack "+@""""+filePath+@""""+" "+@""""+Path.GetDirectoryName(filePath)+@"\"+Path.GetFileNameWithoutExtension(filePath)+@""""
+                              FileName = "nier_BNK_Util.exe",
+                              WorkingDirectory = "BNKTool/",
+                              Arguments = @""""+pathToFile+@""""+" "+@"-"+type+@" "+@""""+Path.GetDirectoryName(pathToFile)+@"\"+Path.GetFileNameWithoutExtension(pathToFile)+@""""
                           }
                         }.Start();
                     }
@@ -274,25 +424,21 @@ namespace MGRRDat
 
             if (pathToFile != "")
             {
-                //string strCmdText;
-                //strCmdText = path+@"\DATTools\dattool.exe unpack "+filePath+" "+Path.GetDirectoryName(filePath) + @"\" + Path.GetFileNameWithoutExtension(filePath);
-                string path = Path.GetDirectoryName(Application.ExecutablePath);
-
+                
+                if (type == "e") cmd = @"""" + pathToFile + @"""" + " " + @"-" + type + @" " + @"""" + Path.GetDirectoryName(pathToFile) + @"\" + Path.GetFileNameWithoutExtension(pathToFile) + @"""";
+                if (type == "r") cmd = @"""" + pathToFile +".bnk"+ @"""" + " " + @"-" + type + @" " + @"""" + Path.GetDirectoryName(pathToFile) + @"\" + Path.GetFileNameWithoutExtension(pathToFile) + @"""";
                 var p = new Process
                 {
                     StartInfo =
                     {
-                        FileName = "dattool.exe",
-                        WorkingDirectory = "DATTools/",
-                        Arguments = @"unpack "+@""""+pathToFile+@""""+" "+@""""+Path.GetDirectoryName(pathToFile)+@"\"+Path.GetFileNameWithoutExtension(pathToFile)+@""""
+                        FileName = "nier_BNK_Util.exe",
+                        WorkingDirectory = "BNKTool/",
+                        Arguments = cmd
                     }
                 }.Start();
             }
 
         }
-
-
-
 
         private void label5_Click(object sender, EventArgs e)
         {
@@ -319,7 +465,7 @@ namespace MGRRDat
         public void ReadDataFromDat(string pathToDat)
         {
             int secToSleep = 500;
-            unpackDat(pathToDat);
+            unpackDat(pathToDat,false);
 
             string fileName = Path.GetFileNameWithoutExtension(pathToDat);
             string fileDirectory = Path.GetDirectoryName(pathToDat);
@@ -415,7 +561,7 @@ namespace MGRRDat
             Thread.Sleep(secToSleep);
             File.Delete(pathToBxmXml.Replace(".bxm", ".xml"));
 
-            repackDat(fileDirectory + @"\" + fileName);
+            repackDat(fileDirectory + @"\" + fileName,false);
            // string directory = fileDirectory + @"\" + fileName;
 
 
@@ -481,7 +627,7 @@ namespace MGRRDat
 
         private void button9_Click(object sender, EventArgs e)
         {
-            unpackDat(textBox6.Text);
+            unpackDat(textBox6.Text, multipleDatUnpack);
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
@@ -560,7 +706,7 @@ namespace MGRRDat
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPosDirY"].Value = InitialPosDirYTextBox.Text;
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialTime"].Value = InitialTimeTextBox.Text;
 
-                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemAlias"].Value = ItemAliasTextBox.Text;
+                XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemAlias"].Value = label_55.Text;
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Free0"].Value = Free0TextBox.Text;
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemNormal"].Value = DropItemNormalTextBox.Text;
                 XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemStealth"].Value = DropItemStealthTextBox.Text;
@@ -620,57 +766,55 @@ namespace MGRRDat
                 secondIndex = treeView2.SelectedNode.Parent.Index;
                 thirdIndex = treeView2.SelectedNode.Index;
 
-                IDTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Id"].Value;
-                RoomTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Room"].Value;
-                BaseRotTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRot"].Value;
-                BaseRotLTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BaseRotL"].Value;
-                TransTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Trans"].Value;
-                TransLTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["TransL"].Value;
 
 
+                var selectedNode = treeView2.SelectedNode;
+                var memberList = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList");
 
-                RotationTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Rotation"].Value;
-                SetTypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetType"].Value;
-                TypeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Type"].Value;
+                var enemyNode = memberList.ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes;
 
-                SetRtnTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetRtn"].Value;
-                SetFlagTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetFlag"].Value;
-                PathNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PathNo"].Value;
-                WaypointNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["WaypointNo"].Value;
-                SetWaitTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["SetWait"].Value;
-                HpTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Hp"].Value;
+              //  for (int i = 0; i < textBoxes.Length; i++)
+              //  {
+                  //  textBoxes[i].Text = enemyNode[i].Value;
+               // }
 
-
-
-                ParamTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Param"].Value;
-                BezierNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["BezierNo"].Value;
-
-                ParentIdTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ParentId"].Value;
-                PartsNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["PartsNo"].Value;
-                HashNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["HashNo"].Value;
-                ItemIdTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemId"].Value;
-                GroupPosTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["GroupPos"].Value;
-
-
-                InitialRtnTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialRtn"].Value;
-                InitialPosTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPos"].Value;
-                InitialPosDirYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialPosDirY"].Value;
-                InitialTimeTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["InitialTime"].Value;
-
-                ItemAliasTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ItemAlias"].Value;
-                Free0TextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["Free0"].Value;
-                DropItemNormalTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemNormal"].Value;
-                DropItemStealthTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["DropItemStealth"].Value;
-                VisceraTableNoTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["VisceraTableNo"].Value;
-                ReflexViewAngYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngY"].Value;
-
-                ReflexViewAngXTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewAngX"].Value;
-                ReflexViewDistTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ReflexViewDist"].Value;
-                ScoutViewAngYTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngY"].Value;
-                ScoutViewAngXTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewAngX"].Value;
-                ScoutViewDistTextBox.Text = XmlDoc.SelectSingleNode(NewEmSetRoot).ChildNodes[firstIndex].SelectSingleNode("CorpsRoot/MemberList").ChildNodes[secondIndex].SelectSingleNode("diffInfo/EnemyList").ChildNodes[thirdIndex].Attributes["ScoutViewDist"].Value;
-
-
+                IDTextBox.Text = enemyNode["Id"].Value;
+                RoomTextBox.Text = enemyNode["Room"].Value;
+                BaseRotTextBox.Text = enemyNode["BaseRot"].Value;
+                BaseRotLTextBox.Text = enemyNode["BaseRotL"].Value;
+                TransTextBox.Text = enemyNode["Trans"].Value;
+                TransLTextBox.Text = enemyNode["TransL"].Value;
+                RotationTextBox.Text = enemyNode["Rotation"].Value;
+                SetTypeTextBox.Text = enemyNode["SetType"].Value;
+                TypeTextBox.Text = enemyNode["Type"].Value;
+                SetRtnTextBox.Text = enemyNode["SetRtn"].Value;
+                SetFlagTextBox.Text = enemyNode["SetFlag"].Value;
+                PathNoTextBox.Text = enemyNode["PathNo"].Value;
+                WaypointNoTextBox.Text = enemyNode["WaypointNo"].Value;
+                SetWaitTextBox.Text = enemyNode["SetWait"].Value;
+                HpTextBox.Text = enemyNode["Hp"].Value;
+                ParamTextBox.Text = enemyNode["Param"].Value;
+                BezierNoTextBox.Text = enemyNode["BezierNo"].Value;
+                ParentIdTextBox.Text = enemyNode["ParentId"].Value;
+                PartsNoTextBox.Text = enemyNode["PartsNo"].Value;
+                HashNoTextBox.Text = enemyNode["HashNo"].Value;
+                ItemIdTextBox.Text = enemyNode["ItemId"].Value;
+                GroupPosTextBox.Text = enemyNode["GroupPos"].Value;
+                InitialRtnTextBox.Text = enemyNode["InitialRtn"].Value;
+                InitialPosTextBox.Text = enemyNode["InitialPos"].Value;
+                InitialPosDirYTextBox.Text = enemyNode["InitialPosDirY"].Value;
+                InitialTimeTextBox.Text = enemyNode["InitialTime"].Value;
+                label_55.Text = enemyNode["ItemAlias"].Value;
+                Free0TextBox.Text = enemyNode["Free0"].Value;
+                DropItemNormalTextBox.Text = enemyNode["DropItemNormal"].Value;
+                DropItemStealthTextBox.Text = enemyNode["DropItemStealth"].Value;
+                VisceraTableNoTextBox.Text = enemyNode["VisceraTableNo"].Value;
+                ReflexViewAngYTextBox.Text = enemyNode["ReflexViewAngY"].Value;
+                ReflexViewAngXTextBox.Text = enemyNode["ReflexViewAngX"].Value;
+                ReflexViewDistTextBox.Text = enemyNode["ReflexViewDist"].Value;
+                ScoutViewAngYTextBox.Text = enemyNode["ScoutViewAngY"].Value;
+                ScoutViewAngXTextBox.Text = enemyNode["ScoutViewAngX"].Value;
+                ScoutViewDistTextBox.Text = enemyNode["ScoutViewDist"].Value;
 
 
 
@@ -725,6 +869,438 @@ namespace MGRRDat
         private void button16_Click(object sender, EventArgs e)
         {
             repackMcd(textBox8.Text,textBox9.Text,textBox10.Text);
+        }
+
+        private void button18_Click(object sender, EventArgs e)
+        {
+            BnkTool(textBox11.Text,"e");
+        }
+
+        private void button20_Click(object sender, EventArgs e)
+        {
+            BnkTool(textBox12.Text, "r");
+        }
+
+        private void button17_Click(object sender, EventArgs e)
+        {
+            BnkTool("", "e");
+        }
+
+        private void tabPage1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            multipleDatUnpack = !multipleDatUnpack;
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            multipleDatRepack = !multipleDatRepack;
+        }
+
+        private void button19_Click(object sender, EventArgs e)
+        {
+
+
+              string output = "";
+              int startCode = 16399; // начальное значение кода символа "A"
+              if (checkBox3.Checked) startCode = 16490; 
+              foreach (char c in textBox13.Text)
+              {
+                  int code = (int)c - 65 + startCode; // вычисляем код символа
+                  output += $"[c:{code}:0/]"; // добавляем закодированный символ в выходную строку
+              }
+
+              textBox14.Text = output;
+
+           // textBox14.Text = EncodeText(textBox13.Text);
+
+
+        }
+
+        private void button21_Click(object sender, EventArgs e)
+        {
+                string output = "";
+                int startCode = 16490;
+
+                Regex regex = new Regex(@"\[c:(\d+):0/\]"); // регулярное выражение для поиска закодированных символов
+
+                foreach (Match match in regex.Matches(textBox15.Text))
+                {
+                    int code = int.Parse(match.Groups[1].Value);
+                    char c = (char)(code - startCode + 65); // вычисляем исходный символ по его коду
+                    output += c;
+                }
+                textBox16.Text = output;
+        }
+
+        static string EncodeText(string text, bool isBold)
+        {
+            string encodedText = "";
+            int begin = 16425;
+            if (isBold) begin = 16334;
+            foreach (char c in text)
+            {
+                int unicodeValue = (int)c; // Получение числового значения Unicode для символа
+                encodedText += $"[c:{unicodeValue + 16425}:0/]"; // Добавление закодированного символа к строке 16490-65
+            }
+
+            return encodedText;
+        }
+
+        private void tabPage4_Click(object sender, EventArgs e)
+        {
+        }
+
+        public static void WriteStruct<T>(BinaryWriter writer, T structure)
+        {
+            byte[] buffer = new byte[Marshal.SizeOf(typeof(T))];
+            GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            Marshal.StructureToPtr(structure, handle.AddrOfPinnedObject(), false);
+            handle.Free();
+
+            writer.Write(buffer);
+        }
+
+        public static T ReadStruct<T>(BinaryReader reader)
+        {
+            int structSize = Marshal.SizeOf(typeof(T));
+            byte[] buffer = reader.ReadBytes(structSize);
+
+            GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            T structure = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+            handle.Free();
+
+            return structure;
+        }
+
+        private void button22_Click(object sender, EventArgs e)
+        {
+  
+        }
+
+        private void button23_Click(object sender, EventArgs e)
+        {
+
+
+            string filePath = textBox17.Text;
+
+            using (var moveWriter = new BinaryWriter(File.Open(filePath, FileMode.Open)))
+            {
+                // Запись остальных значений в moveWriter
+                // и так далее...
+
+                // Получение текущей позиции для red
+                int currentPosition = (int)moveWriter.BaseStream.Position;
+
+                // Перемещение в нужную позицию
+                moveWriter.BaseStream.Position = Convert.ToInt32(textBox13.Text);
+
+                // Запись нового значения для red
+                float newRedValue = (float)Convert.ToDouble(textBox14.Text);
+                moveWriter.Write(newRedValue);
+                moveWriter.Close();
+            }
+        }
+
+    void EffectReader(string filePath)
+        {
+            header = new EffectHeader();
+            using (BinaryReader reader = new BinaryReader(File.Open(filePath, FileMode.Open)))
+            {
+                // Считываем заголовок
+                header.id = new string (reader.ReadChars(4));
+                header.recordCount = reader.ReadUInt32();
+                header.recordOffsetsOffset = reader.ReadUInt32();
+                header.typeOffset = reader.ReadUInt32();
+                header.typeEndOffset = reader.ReadUInt32();
+                header.typeSize = reader.ReadUInt32();
+                header.typeNumber = reader.ReadUInt32();
+
+                typeGroup = new TypeGroups[header.recordCount];
+                reader.BaseStream.Seek(header.recordOffsetsOffset, SeekOrigin.Begin);
+                offsets = new uint[header.recordCount];
+
+                for (int i = 0; i<header.recordCount; i++)
+                {
+                    offsets[i] = reader.ReadUInt32();
+                }
+
+
+            for (int i = 0; i < header.recordCount; i++)
+            {
+                typeGroup[i] = new TypeGroups();
+                typeGroup[i].types = new TypeGroup[23];
+
+                reader.BaseStream.Seek(header.typeOffset, SeekOrigin.Begin);
+                for (int j = 0; j < 23; j++)
+                {
+                    typeGroup[i].types[j] = new TypeGroup();
+                    typeGroup[i].types[j].u_a = reader.ReadUInt32();
+                    typeGroup[i].types[j].id = new string(reader.ReadChars(4));
+                    typeGroup[i].types[j].size = reader.ReadUInt32();
+                    typeGroup[i].types[j].offset = reader.ReadUInt32();
+                }
+
+            }               
+
+            move = new Move_s[header.recordCount];
+            emif = new Emif_s[header.recordCount];
+
+            comboBox1.Items.Clear();
+            // Считываем структуры
+            for (int i = 0; i < header.recordCount; i++)
+            {
+                for (int j = 0; j < 23; j++)
+                {
+                    if (typeGroup[i].types[j].size > 0)
+                    {
+
+                        // Переходим на позицию текущего типа
+                        reader.BaseStream.Seek(offsets[i] + typeGroup[i].types[j].offset, SeekOrigin.Begin);
+
+                        if (typeGroup[i].types[j].id == "PART")
+                        {
+                            Part_s part;
+                            using (var memStream = new MemoryStream(reader.ReadBytes((int)typeGroup[i].types[j].size)))
+                            using (var partReader = new BinaryReader(memStream))
+                            {
+                            //part = ReadStruct<Part_s>(partReader);
+                            }
+                        }
+
+                        if (typeGroup[i].types[j].id == "MOVE")
+                        {
+                            comboBox1.Items.Add((i + 1).ToString());
+
+                            //Move_s move;
+                            using (var memStream = new MemoryStream(reader.ReadBytes((int)typeGroup[i].types[j].size)))
+                            using (var moveReader = new BinaryReader(memStream))
+                            move[i] = ReadStruct<Move_s>(moveReader);
+                        }
+
+                        if (typeGroup[i].types[j].id == "EMIF")
+                        {
+                            using (var memStream = new MemoryStream(reader.ReadBytes((int)typeGroup[i].types[j].size)))
+                            using (var emifReader = new BinaryReader(memStream))
+                            emif[i] = ReadStruct<Emif_s>(emifReader);
+                        }
+                    }
+                }
+            }
+            comboBox1.SelectedIndex = 0;
+        }
+    }
+
+        private void label63_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button24_Click(object sender, EventArgs e)
+        {
+            if (textBox27.Text != "")
+                EffectReader(textBox27.Text);
+        }
+
+        private void comboBox1_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+            textBox28.Text = (move[comboBox1.SelectedIndex].alpha).ToString();
+            textBox29.Text = (move[comboBox1.SelectedIndex].blue).ToString();
+            textBox30.Text = (move[comboBox1.SelectedIndex].green).ToString();
+            textBox31.Text = (move[comboBox1.SelectedIndex].red).ToString();
+            textBox32.Text = move[comboBox1.SelectedIndex].scale.ToString();
+
+            textBox33.Text = (emif[comboBox1.SelectedIndex].count).ToString();
+            textBox34.Text = (emif[comboBox1.SelectedIndex].play_delay).ToString();
+            textBox35.Text = (emif[comboBox1.SelectedIndex].repeating).ToString();
+           
+            textBox36.Text = (move[comboBox1.SelectedIndex].angle).ToString();
+        }
+
+        private void button25_Click(object sender, EventArgs e)
+        {
+            move[comboBox1.SelectedIndex].alpha = float.Parse(textBox28.Text);
+            move[comboBox1.SelectedIndex].blue = float.Parse(textBox29.Text);
+            move[comboBox1.SelectedIndex].green = float.Parse(textBox30.Text);
+            move[comboBox1.SelectedIndex].red = float.Parse(textBox31.Text);
+            move[comboBox1.SelectedIndex].scale = float.Parse(textBox32.Text);
+
+            move[comboBox1.SelectedIndex].angle = float.Parse(textBox36.Text);
+
+
+            emif[comboBox1.SelectedIndex].count = Convert.ToInt16(textBox33.Text);
+            emif[comboBox1.SelectedIndex].play_delay = Convert.ToInt16(textBox34.Text);
+            emif[comboBox1.SelectedIndex].repeating = Convert.ToInt16(textBox35.Text);
+        }
+
+        private void button26_Click(object sender, EventArgs e)
+        {
+            string filePath = textBox27.Text;
+            using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Open)))
+            {
+                // Записываем структуры move
+                for (int i = 0; i < header.recordCount; i++)
+                {
+                    for (int j = 0; j < 23; j++)
+                    {
+                        writer.BaseStream.Seek(offsets[i] + typeGroup[i].types[j].offset, SeekOrigin.Begin);
+
+                        if (typeGroup[i].types[j].id == "MOVE")
+                        {
+
+                            long position = offsets[i] + typeGroup[i].types[j].offset;
+                            long originalPosition = writer.BaseStream.Position;
+                            writer.BaseStream.Seek(position, SeekOrigin.Begin);
+
+                            using (var memStream = new MemoryStream())
+                            {
+                                using (var moveWriter = new BinaryWriter(memStream))
+                                {
+                                    WriteStruct(moveWriter, move[i]);
+                                }
+                                byte[] data = memStream.ToArray();
+                                writer.Write(data);
+                            }
+                            writer.BaseStream.Seek(originalPosition, SeekOrigin.Begin);
+                        }
+
+                        if (typeGroup[i].types[j].id == "EMIF")
+                        {
+
+                            long position = offsets[i] + typeGroup[i].types[j].offset;
+                            long originalPosition = writer.BaseStream.Position;
+                            writer.BaseStream.Seek(position, SeekOrigin.Begin);
+
+                            using (var memStream = new MemoryStream())
+                            {
+                                using (var emifWriter = new BinaryWriter(memStream))
+                                {
+                                    WriteStruct(emifWriter, emif[i]);
+                                }
+                                byte[] data = memStream.ToArray();
+                                writer.Write(data);
+                            }
+                            writer.BaseStream.Seek(originalPosition, SeekOrigin.Begin);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void button27_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "est files (*.est)|*.est|All files (*.*)|*.*";
+                openFileDialog.FilterIndex = 1;
+                openFileDialog.RestoreDirectory = false;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                    EffectReader(openFileDialog.FileName);
+            }
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panel1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void panel2_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void panel2_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // Получение полных путей к файлам
+            foreach (string file in files)
+            {
+                unpackDat(file, multipleDatUnpack);
+            }
+        }
+
+        private void panel3_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // Получение полных путей к файлам
+            foreach (string file in files)
+            {
+                 BxmXml(file, "bxmToXml");
+            }
+
+            
+        }
+
+        private void panel3_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void panel4_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // Получение полных путей к файлам
+            foreach (string file in files)
+            {
+                BxmXml(file, "xmlToBxm");
+            }
+        }
+
+        private void panel4_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void panel1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            // Получение полных путей к файлам
+            foreach (string file in files)
+            {
+                repackDat(file, false);
+            }
+            
+        }
+
+        private void panel5_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effect = DragDropEffects.Copy;
+            }
+        }
+
+        private void panel5_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] file = (string[])e.Data.GetData(DataFormats.FileDrop);
+            textBox27.Text = file[0];
+            EffectReader(file[0]);
         }
     }
 }
